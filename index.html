@@ -1,1 +1,94 @@
-oi
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Amigo Secreto</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        text-align: center;
+        padding: 30px;
+    }
+    #lista { margin: 15px 0; }
+    .nome {
+        background: #fff;
+        padding: 8px;
+        margin: 5px auto;
+        width: 200px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+    }
+    #resultado div {
+        background:#d8ffd8;
+        padding:8px;
+        margin:5px auto;
+        width:260px;
+        border-radius:5px;
+        font-weight:bold;
+    }
+</style>
+</head>
+<body>
+
+<h2>🎁 Sorteio Amigo Secreto</h2>
+
+<input id="nome" type="text" placeholder="Digite um nome">
+<button onclick="adicionar()">Adicionar</button>
+
+<h3>Participantes:</h3>
+<div id="lista"></div>
+
+<button onclick="sortear()" style="margin-top:15px">Sortear!</button>
+
+<h3>Resultado:</h3>
+<div id="resultado"></div>
+
+<script>
+    let nomes = [];
+
+    function adicionar(){
+        const nome = document.getElementById("nome").value.trim();
+        if(nome === "" || nomes.includes(nome)) return;
+        nomes.push(nome);
+        document.getElementById("nome").value = "";
+        atualizarLista();
+    }
+
+    function atualizarLista(){
+        let html = "";
+        nomes.forEach(n => html += `<div class="nome">${n}</div>`);
+        document.getElementById("lista").innerHTML = html;
+    }
+
+    function embaralhar(array) {
+        for(let i=array.length-1;i>0;i--){
+            const j = Math.floor(Math.random()* (i+1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function sortear(){
+        if(nomes.length < 3){
+            alert("Adicione pelo menos 3 participantes!");
+            return;
+        }
+        
+        let sorteados = embaralhar([...nomes]);
+        let html = "";
+
+        for(let i=0; i<nomes.length; i++){
+            let amigo = sorteados[i];
+            if(amigo === nomes[i]){ // se alguém tirar ele mesmo refaz sorteio
+                return sortear();
+            }
+            html += `<div>${nomes[i]} ➜ <strong>${amigo}</strong></div>`;
+        }
+
+        document.getElementById("resultado").innerHTML = html;
+    }
+</script>
+
+</body>
+</html>
