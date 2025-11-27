@@ -1,94 +1,291 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Amigo Secreto</title>
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f5f5f5;
-        text-align: center;
-        padding: 30px;
-    }
-    #lista { margin: 15px 0; }
-    .nome {
-        background: #fff;
-        padding: 8px;
-        margin: 5px auto;
-        width: 200px;
-        border-radius: 5px;
-        border: 1px solid #ddd;
-    }
-    #resultado div {
-        background:#d8ffd8;
-        padding:8px;
-        margin:5px auto;
-        width:260px;
-        border-radius:5px;
-        font-weight:bold;
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorteio de Amigo Secreto</title>
+    <style>
+        :root {
+            --primary: #c0392b;
+            --secondary: #27ae60;
+            --bg: #fdf2e9;
+            --card-bg: #ffffff;
+            --text: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 { color: var(--primary); margin-bottom: 1rem; }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: transform 0.1s;
+        }
+
+        button:active { transform: scale(0.98); }
+
+        .btn-add { background-color: var(--secondary); color: white; }
+        .btn-draw { background-color: var(--primary); color: white; width: 100%; margin-top: 10px; }
+        .btn-copy { background-color: #34495e; color: white; font-size: 12px; padding: 5px 10px; }
+
+        ul { list-style: none; padding: 0; text-align: left; }
+        li { 
+            background: #f8f9fa; 
+            margin: 5px 0; 
+            padding: 10px; 
+            border-radius: 5px; 
+            display: flex; 
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .remove { color: var(--primary); cursor: pointer; font-weight: bold; }
+
+        /* Área de Resultados (Links) */
+        #result-area { display: none; margin-top: 20px; border-top: 2px dashed #ddd; padding-top: 20px; }
+        .link-item { 
+            background: #eafaf1; 
+            border: 1px solid #d5f5e3;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: left;
+        }
+        .link-item p { margin: 0 0 5px 0; font-weight: bold; font-size: 14px; }
+
+        /* Tela de Revelação */
+        #reveal-screen { display: none; }
+        .reveal-box {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            display: none;
+        }
+        .eye-icon { font-size: 3rem; margin-bottom: 10px; display: block; }
+
+    </style>
 </head>
 <body>
 
-<h2>🎁 Sorteio Amigo Secreto</h2>
+    <div class="container">
+        <div id="organizer-screen">
+            <h1>🎅 Amigo Secreto</h1>
+            <p>Adicione os participantes e gere os links.</p>
+            
+            <div class="input-group">
+                <input type="text" id="nameInput" placeholder="Nome do participante..." onkeypress="handleEnter(event)">
+                <button class="btn-add" onclick="addParticipant()">Adicionar</button>
+            </div>
 
-<input id="nome" type="text" placeholder="Digite um nome">
-<button onclick="adicionar()">Adicionar</button>
+            <ul id="nameList"></ul>
 
-<h3>Participantes:</h3>
-<div id="lista"></div>
+            <button class="btn-draw" id="drawBtn" onclick="drawNames()" style="display:none;">Realizar Sorteio</button>
 
-<button onclick="sortear()" style="margin-top:15px">Sortear!</button>
+            <div id="result-area">
+                <h3>Links Gerados! 🔗</h3>
+                <p style="font-size: 0.9rem; color: #666;">Copie o link abaixo e envie para a pessoa correspondente.</p>
+                <div id="linksList"></div>
+                <button onclick="reset()" style="margin-top:20px; background:#7f8c8d; color:white;">Reiniciar</button>
+            </div>
+        </div>
 
-<h3>Resultado:</h3>
-<div id="resultado"></div>
+        <div id="reveal-screen">
+            <h1>🎁 Seu Amigo Secreto</h1>
+            <p>Olá, <strong id="santa-name" style="color:var(--primary)"></strong>!</p>
+            <p>Você tirou...</p>
+            
+            <button class="btn-add" onclick="revealTarget()">Ver quem eu tirei</button>
+            
+            <div id="target-reveal" class="reveal-box">
+                </div>
+            
+            <br><br>
+            <a href="?" style="font-size: 12px; color: #999;">Criar novo sorteio</a>
+        </div>
+    </div>
 
-<script>
-    let nomes = [];
+    <script>
+        let participants = [];
 
-    function adicionar(){
-        const nome = document.getElementById("nome").value.trim();
-        if(nome === "" || nomes.includes(nome)) return;
-        nomes.push(nome);
-        document.getElementById("nome").value = "";
-        atualizarLista();
-    }
+        // Verifica se a página foi aberta com um "segredo" na URL
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            const secret = params.get('s');
 
-    function atualizarLista(){
-        let html = "";
-        nomes.forEach(n => html += `<div class="nome">${n}</div>`);
-        document.getElementById("lista").innerHTML = html;
-    }
+            if (secret) {
+                // Modo Participante
+                document.getElementById('organizer-screen').style.display = 'none';
+                document.getElementById('reveal-screen').style.display = 'block';
+                
+                try {
+                    // Decodifica o Base64
+                    const decoded = atob(secret); // Decodifica string
+                    const data = JSON.parse(decoded); // Transforma em objeto
+                    
+                    document.getElementById('santa-name').innerText = data.giver;
+                    document.getElementById('target-reveal').innerText = data.receiver;
+                } catch (e) {
+                    alert("Link inválido!");
+                    window.location.href = window.location.pathname;
+                }
+            }
+        };
 
-    function embaralhar(array) {
-        for(let i=array.length-1;i>0;i--){
-            const j = Math.floor(Math.random()* (i+1));
-            [array[i], array[j]] = [array[j], array[i]];
+        // --- Lógica do Organizador ---
+
+        function handleEnter(e) {
+            if (e.key === 'Enter') addParticipant();
         }
-        return array;
-    }
 
-    function sortear(){
-        if(nomes.length < 3){
-            alert("Adicione pelo menos 3 participantes!");
-            return;
+        function addParticipant() {
+            const input = document.getElementById('nameInput');
+            const name = input.value.trim();
+
+            if (name && !participants.includes(name)) {
+                participants.push(name);
+                renderList();
+                input.value = '';
+                input.focus();
+            } else if (participants.includes(name)) {
+                alert("Esse nome já existe!");
+            }
+        }
+
+        function removeParticipant(index) {
+            participants.splice(index, 1);
+            renderList();
+        }
+
+        function renderList() {
+            const list = document.getElementById('nameList');
+            const drawBtn = document.getElementById('drawBtn');
+            list.innerHTML = '';
+
+            participants.forEach((name, index) => {
+                list.innerHTML += `
+                    <li>
+                        ${name}
+                        <span class="remove" onclick="removeParticipant(${index})">&times;</span>
+                    </li>
+                `;
+            });
+
+            // Só mostra botão de sortear se tiver pelo menos 3 pessoas
+            drawBtn.style.display = participants.length >= 3 ? 'block' : 'none';
+        }
+
+        function drawNames() {
+            if (participants.length < 3) return alert("Adicione pelo menos 3 pessoas.");
+
+            // Lógica de Sorteio (Circular para garantir que ninguém tire a si mesmo)
+            // 1. Embaralha a lista original
+            let shuffled = [...participants];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+
+            // 2. Cria os pares: Indice 0 tira 1, 1 tira 2... Ultimo tira 0
+            const linksContainer = document.getElementById('linksList');
+            linksContainer.innerHTML = '';
+
+            for (let i = 0; i < shuffled.length; i++) {
+                const giver = shuffled[i];
+                const receiver = shuffled[(i + 1) % shuffled.length]; // O último pega o primeiro
+
+                // Gera o "segredo"
+                const secretObj = { giver: giver, receiver: receiver };
+                const secretString = btoa(JSON.stringify(secretObj)); // Codifica em Base64
+                
+                // Gera a URL completa
+                const baseUrl = window.location.href.split('?')[0];
+                const fullUrl = `${baseUrl}?s=${secretString}`;
+
+                // Cria o elemento visual
+                const div = document.createElement('div');
+                div.className = 'link-item';
+                div.innerHTML = `
+                    <p>Link para <strong>${giver}</strong>:</p>
+                    <div style="display:flex; gap:5px;">
+                        <input type="text" value="${fullUrl}" readonly style="font-size:12px; color:#555;">
+                        <button class="btn-copy" onclick="copyLink(this)">Copiar</button>
+                    </div>
+                `;
+                linksContainer.appendChild(div);
+            }
+
+            document.getElementById('result-area').style.display = 'block';
+            document.getElementById('drawBtn').style.display = 'none';
+            document.getElementById('nameInput').disabled = true;
+        }
+
+        function copyLink(btnElement) {
+            const input = btnElement.previousElementSibling;
+            input.select();
+            input.setSelectionRange(0, 99999); // Para mobile
+            navigator.clipboard.writeText(input.value).then(() => {
+                const originalText = btnElement.innerText;
+                btnElement.innerText = "Copiado!";
+                btnElement.style.background = "#27ae60";
+                setTimeout(() => {
+                    btnElement.innerText = originalText;
+                    btnElement.style.background = "#34495e";
+                }, 2000);
+            });
+        }
+
+        // --- Lógica do Participante ---
+
+        function revealTarget() {
+            document.getElementById('target-reveal').style.display = 'block';
+            // Confete opcional, se quiser implementar
         }
         
-        let sorteados = embaralhar([...nomes]);
-        let html = "";
-
-        for(let i=0; i<nomes.length; i++){
-            let amigo = sorteados[i];
-            if(amigo === nomes[i]){ // se alguém tirar ele mesmo refaz sorteio
-                return sortear();
-            }
-            html += `<div>${nomes[i]} ➜ <strong>${amigo}</strong></div>`;
+        function reset() {
+            window.location.reload();
         }
-
-        document.getElementById("resultado").innerHTML = html;
-    }
-</script>
-
+    </script>
 </body>
 </html>
